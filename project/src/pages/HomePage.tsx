@@ -22,13 +22,15 @@ const HomePage: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get user's geolocation
+    let watchId: number;
+
+    // Get user's location continuously with high accuracy
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      watchId = navigator.geolocation.watchPosition(
         (position) => {
           setUserLocation({
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           });
           setLocationError(null);
         },
@@ -39,6 +41,11 @@ const HomePage: React.FC = () => {
           }
           setLocationError(errorMessage);
           toast.error(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
         }
       );
     } else {
@@ -59,20 +66,26 @@ const HomePage: React.FC = () => {
     };
 
     fetchLocations();
+
+    // Cleanup watchPosition on unmount
+    return () => {
+      if (navigator.geolocation && watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, []);
 
-  // Calculate distance between two points using Haversine formula
+  // Calculate distance between two coordinates using Haversine formula
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371; // Earth radius in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.sin(dLon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c; // Distance in km
-    return d;
+    return R * c;
   };
 
   const deg2rad = (deg: number): number => {
@@ -81,15 +94,17 @@ const HomePage: React.FC = () => {
 
   // Add distance to each location if user location is available
   const locationsWithDistance = userLocation
-    ? locations.map(location => ({
-        ...location,
-        distance: calculateDistance(
-          userLocation.lat,
-          userLocation.lng,
-          location.latitude,
-          location.longitude
-        )
-      })).sort((a, b) => (a.distance || 0) - (b.distance || 0))
+    ? locations
+        .map((location) => ({
+          ...location,
+          distance: calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            location.latitude,
+            location.longitude
+          ),
+        }))
+        .sort((a, b) => (a.distance || 0) - (b.distance || 0))
     : locations;
 
   return (
@@ -103,7 +118,7 @@ const HomePage: React.FC = () => {
           <p className="text-xl mb-6">
             ParkEase helps you locate and reserve parking spaces in real-time.
           </p>
-          
+
           {/* Location Status */}
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-700">
             {locationError ? (
@@ -114,12 +129,12 @@ const HomePage: React.FC = () => {
             ) : userLocation ? (
               <span className="flex items-center text-green-300">
                 <MapPin className="h-5 w-5 mr-2" />
-                Location services active
+                Location detected successfully
               </span>
             ) : (
               <span className="flex items-center text-blue-300">
                 <MapPin className="h-5 w-5 mr-2" />
-                Detecting your location...
+                Detecting location...
               </span>
             )}
           </div>
@@ -128,15 +143,17 @@ const HomePage: React.FC = () => {
 
       {/* Parking Locations Section */}
       <section>
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Available Parking Locations</h2>
-        
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          Available Parking Locations
+        </h2>
+
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : locationsWithDistance.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locationsWithDistance.map(location => (
+            {locationsWithDistance.map((location) => (
               <ParkingLocationCard
                 key={location.id}
                 id={location.id}

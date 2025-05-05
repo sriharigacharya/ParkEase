@@ -7,7 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { 
   MapPin, 
   Users, 
-  DollarSign, 
+  IndianRupee, 
   Activity,
   BarChart4,
   Car 
@@ -85,8 +85,8 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: 'Hourly Rate',
-      value: `$${(stats.hourlyRate || 0).toFixed(2)}`,
-      icon: <DollarSign className="h-8 w-8 text-yellow-500" />,
+      value: `₹${(stats.hourlyRate || 0).toFixed(2)}`,
+      icon: <IndianRupee className="h-8 w-8 text-yellow-500" />,
       linkTo: '/admin/rates',
       color: 'bg-yellow-50 border-yellow-200'
     },
@@ -159,14 +159,14 @@ const AdminDashboard: React.FC = () => {
             to="/admin/rates" 
             className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg p-4 text-center transition-colors"
           >
-            <DollarSign className="h-6 w-6 mx-auto mb-2" />
+            <IndianRupee className="h-6 w-6 mx-auto mb-2" />
             <span>Set Hourly Rate</span>
           </Link>
         </div>
       </div>
 
       {/* Activity Overview */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      {/* <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Activity Overview</h2>
           <BarChart4 className="h-5 w-5 text-gray-500" />
@@ -177,7 +177,7 @@ const AdminDashboard: React.FC = () => {
         <div className="h-40 flex items-center justify-center border border-dashed border-gray-300 rounded-lg">
           <p className="text-gray-500">Activity charts would appear here</p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

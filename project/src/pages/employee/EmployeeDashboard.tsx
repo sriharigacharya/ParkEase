@@ -116,7 +116,7 @@ const EmployeeDashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success(`Vehicle checked out. Cost: $${response.data.cost.toFixed(2)}`);
+      toast.success(`Vehicle checked out. Cost: ₹${response.data.cost.toFixed(2)}`);
       setSelectedVehicle(null);
       
       // Refresh data
